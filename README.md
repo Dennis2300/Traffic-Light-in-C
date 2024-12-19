@@ -6,3 +6,4 @@ More of my personal Notes (coming soon)
 
 ## Picture of my Arduino
 ![Traffic Light Simulation](./trafficLight.png)
+
