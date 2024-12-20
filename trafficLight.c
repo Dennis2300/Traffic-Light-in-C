@@ -13,12 +13,21 @@
 #define EW_GREEN  (1 << 0) // 1 << 0 = 0b00000001 = 1
 // Where 0b is a prefix to indicate the following number is a binary number
 
+#define NS_PED_RED  (1 << 2) // 1 << 2 = 0b00000100 = 4
+#define NS_PED_GREEN (1 << 3) // 1 << 3 = 0b00001000 = 8
+#define EW_PED_RED (1 << 5) // 1 << 6 = 0b01000000 = 64
+#define EW_PED_GREEN (1 << 6) // 1 << 7 = 0b10000000 = 128
+
+#define NS_PED_BUTTON (1 << 4) // 1 << 4 = 0b00010000 = 16
+#define EW_PED_BUTTON (1 << 7) // 1 << 5 = 0b00100000 = 32
+
 // The duration of each light
 // We define the duration of each light in milliseconds
 #define GREEN_DURATION 500
 #define YELLOW_DURATION 200
 #define RED_DURATION 500
 #define RED_OVERLAP_DURATION 500
+#define PED_DELAY 5000
 
 // Here we define the name DDRB, if DDRB gets called with a value
 // it will go to the address 0x24 and modify the 8 bits at that address
@@ -26,7 +35,13 @@
 // Here we define the name PORTB, if PORTB gets called with a value
 // it will go to the address 0x25 and modify the 8 bits at that address
 #define PORTB *((volatile unsigned char*)0x25)
+#define PINB *((volatile unsigned char*)0x23)
 
+#define DDRD *((volatile unsigned char*)0x2A)
+#define PORTD *((volatile unsigned char*)0x2B)
+#define PIND *((volatile unsigned char*)0x29)
+
+// delay function in milliseconds
 void delay_ms(unsigned long ms) {
     volatile unsigned long i, j;
     for (i = 0; i < ms; i++) {
@@ -38,8 +53,26 @@ void delay_ms(unsigned long ms) {
 int main() {
     DDRB = 0xFF; // we set all pins to 11111111 which means all pins are output
 
+	DDRD = NS_PED_RED | NS_PED_GREEN | EW_PED_RED | EW_PED_GREEN;
+
+	DDRD = DDRD & ~(NS_PED_BUTTON | EW_PED_BUTTON);
+
+	PORTD = NS_PED_BUTTON | EW_PED_BUTTON;
+
 // The traffic light will run in an infinite loop
     while (1) { // where (1) is always true so the loop will run forever
+
+	if (!(PIND & NS_PED_BUTTON)) {
+		PORTD |= NS_PED_RED | NS_PED_GREEN;
+	} else {
+		PORTD &= ~(NS_PED_RED | NS_PED_GREEN);
+	}
+
+	if (!(PIND & EW_PED_BUTTON)) {
+		PORTD |= EW_PED_RED | EW_PED_GREEN;
+	} else {
+		PORTD &= ~(EW_PED_RED | EW_PED_GREEN);
+	}
       
       	//NS: RED | EW: RED
         // which will set D13 and D10 to HIGH
